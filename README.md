@@ -125,6 +125,7 @@ verificá que Ollama esté corriendo (`ollama list` en la terminal).
 | No abre `localhost:8080` | La terminal con `open-webui serve` tiene que seguir abierta |
 | Todo anda lento | Usá un modelo más chico (`ollama pull llama3.2:3b`) |
 | Open WebUI no conecta con Ollama | Ajustes → Conexiones → Ollama: `http://localhost:11434` |
+| El modelo corta la respuesta cuando usa herramientas | Aumentá el contexto: `setx OLLAMA_CONTEXT_LENGTH 16384` y reiniciá Ollama |
 | Apagué la PC y ahora no hay IA | Volvé a correr `open-webui serve` (Ollama se prende solo) |
 
 ---
