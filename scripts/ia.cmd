@@ -27,7 +27,7 @@ exit /b
 
 :stop
 taskkill /F /IM open-webui.exe >nul 2>&1
-powershell -NoProfile -Command "Get-CimInstance Win32_Process -Filter \"Name='python.exe'\" | Where-Object { \$_.CommandLine -like '*auto_search_proxy*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force -ErrorAction SilentlyContinue }"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0kill-proxy.ps1"
 taskkill /F /IM ollama.exe >nul 2>&1
 "%ProgramFiles%\Tailscale\tailscale.exe" down
 taskkill /F /IM tailscale-ipn.exe >nul 2>&1
