@@ -11,20 +11,21 @@ exit /b
 :start
 echo [1/3] Tailscale...
 "%ProgramFiles%\Tailscale\tailscale.exe" up
-if errorlevel 1 echo   ^> Necesitas login la primera vez: abri la URL que imprime arriba
-echo [2/3] Ollama...
-start "" "%LocalAppData%\Programs\Ollama\ollama app.exe"
+timeout /t 3 /nobreak >nul
+start "" "%ProgramFiles%\Tailscale\tailscale-ipn.exe"
+echo [2/3] Ollama (fondo)...
+netstat -ano | findstr ":11434" | findstr "LISTENING" >nul && echo   ya estaba ON || start "" /b "%LocalAppData%\Programs\Ollama\ollama.exe" serve
 echo [3/3] Open WebUI...
-start "Open WebUI" open-webui serve
+netstat -ano | findstr ":8080" | findstr "LISTENING" >nul && echo   ya estaba ON || start "Open WebUI" open-webui serve
 echo.
 echo Lista: http://localhost:8080
 exit /b
 
 :stop
 taskkill /F /IM open-webui.exe >nul 2>&1
-taskkill /F /IM "ollama app.exe" >nul 2>&1
 taskkill /F /IM ollama.exe >nul 2>&1
 "%ProgramFiles%\Tailscale\tailscale.exe" down
+taskkill /F /IM tailscale-ipn.exe >nul 2>&1
 echo Todo detenido.
 exit /b
 
