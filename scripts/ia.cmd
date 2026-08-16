@@ -1,7 +1,8 @@
 @echo off
 rem ia.cmd — start/stop/status de tu IA local (Tailscale + Ollama + Open WebUI)
 rem Uso:  ia start | ia stop | ia status
-rem Todo se lanza en SEGUNDO PLANO (oculto) — cerrar terminales no afecta la IA.
+rem Todo se lanza OCULTO y DESACOPLADO de la consola (via launch-hidden.vbs):
+rem cerrar la terminal NO afecta a la IA.
 
 if /i "%1"=="start"   goto start
 if /i "%1"=="stop"    goto stop
@@ -13,13 +14,13 @@ exit /b
 echo [1/3] Tailscale...
 "%ProgramFiles%\Tailscale\tailscale.exe" up
 timeout /t 3 /nobreak >nul
-powershell -NoProfile -Command "Start-Process -FilePath '%ProgramFiles%\Tailscale\tailscale-ipn.exe' -WindowStyle Hidden -RedirectStandardOutput '%USERPROFILE%\Documents\IA-Personal\tailscale.log' -RedirectStandardError '%USERPROFILE%\Documents\IA-Personal\tailscale.err'"
+wscript.exe "%~dp0launch-hidden.vbs" "%ProgramFiles%\Tailscale\tailscale-ipn.exe"
 echo [2/3] Ollama (fondo)...
-netstat -ano | findstr ":11434" | findstr "LISTENING" >nul && echo   ya estaba ON || powershell -NoProfile -Command "Start-Process -FilePath '%LocalAppData%\Programs\Ollama\ollama.exe' -ArgumentList 'serve' -WindowStyle Hidden"
+netstat -ano | findstr ":11434" | findstr "LISTENING" >nul && echo   ya estaba ON || wscript.exe "%~dp0launch-hidden.vbs" "%LocalAppData%\Programs\Ollama\ollama.exe" "serve"
 echo [3/3] Open WebUI (fondo oculto)...
-netstat -ano | findstr ":8080" | findstr "LISTENING" >nul && echo   ya estaba ON || powershell -NoProfile -Command "Start-Process -FilePath 'open-webui' -ArgumentList 'serve' -WindowStyle Hidden -RedirectStandardOutput '%USERPROFILE%\Documents\IA-Personal\owu.log' -RedirectStandardError '%USERPROFILE%\Documents\IA-Personal\owu.log.err'"
+netstat -ano | findstr ":8080" | findstr "LISTENING" >nul && echo   ya estaba ON || wscript.exe "%~dp0launch-hidden.vbs" "open-webui" "serve"
 echo.
-echo Lista: http://localhost:8080  -  todo corriendo en segundo plano
+echo Lista: http://localhost:8080  -  todo corriendo en segundo plano (cerrar esta terminal no lo apaga)
 exit /b
 
 :stop
