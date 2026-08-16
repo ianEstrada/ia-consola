@@ -200,4 +200,14 @@ open-webui serve            # encender la IA (cada vez que prendas la PC)
 ollama list                 # ver modelos instalados
 ```
 
+**Atajo Windows (opcional):** bajá [`scripts/ia.cmd`](scripts/ia.cmd) a una
+carpeta que esté en tu PATH (por ejemplo `C:\Users\<tu-usuario>\bin`) y
+usá un solo comando:
+
+```cmd
+ia start      :: levanta Tailscale + Ollama + Open WebUI
+ia stop       :: apaga todo
+ia status     :: muestra qué está encendido
+```
+
 ¡Listo! Tenés tu IA local, privada y global. 🌎
