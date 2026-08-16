@@ -80,10 +80,6 @@ def build_context(results: list) -> str:
     return RAG_TEMPLATE.format(CONTEXT="\n".join(sources))
 
 
-def needs_search(text: str) -> bool:
-    return bool(TRIGGERS.search(text)) and len(text) > 4
-
-
 def strip_prefix(model: str) -> str:
     for p in ("auto-", "auto_"):
         if model.startswith(p):
