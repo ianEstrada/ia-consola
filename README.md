@@ -36,13 +36,13 @@ PC, donde sea) con conexión cifrada.
 2. Abrí una terminal y descargá un modelo de IA:
 
    ```bash
-   ollama pull qwen3:8b
+   ollama pull qwen3.6:35b-a3b
    ```
 
    ¿PC modesta? Usá el modelo liviano:
 
    ```bash
-   ollama pull llama3.2:3b
+   ollama pull qwen3.5:4b o ollama pull gemma4:e4b-it-qta
    ```
 
 3. Verificá que esté:
@@ -53,7 +53,7 @@ PC, donde sea) con conexión cifrada.
 
    → Ahí aparece tu modelo. Eso es todo el cerebro que necesitás.
 
-> 💡 Los modelos son archivos grandes (3–5 GB): la descarga tarda según tu internet.
+> 💡 Los modelos son archivos grandes (3–25+ GB): la descarga tarda según tu internet.
 
 ---
 
@@ -157,6 +157,38 @@ en cuenta al responderte. Pegale esta plantilla **completada con tus datos**:
 
 Llená cada campo con lo tuyo (o agregá los que quieras: pareja, mascotas,
 metas...). Cuanto mejor la completes, más "vos" suena tu IA.
+
+---
+
+## Conectar opencode a tu IA local (opcional)
+
+¿Usás [opencode](https://opencode.ai)? Podés **enlazarlo con tu IA local**
+para que compartan una sola memoria: los chats de Open WebUI taggeados con
+**`link`** + las Memorias quedan visibles para opencode, y lo que opencode
+guarda aparece en las Memorias de tu IA local. Todo lo demás se ignora.
+
+### Configuración manual
+
+1. **Copiá el plugin** `plugin/owu-memory.ts` a la carpeta de plugins de
+   opencode: `~/.config/opencode/plugins/` (o `.opencode/plugins/` del proyecto).
+2. **Creá una API key** en tu Open WebUI: Ajustes → Cuenta → Claves API → Crear.
+3. **Agregá la config** a tu `opencode.json`:
+
+   ```json
+   {
+     "env": {
+       "OWU_URL": "http://localhost:8080",
+       "OWU_API_KEY": "sk-…",
+       "OWU_MEMORY_TAG": "link"
+     }
+   }
+   ```
+
+4. **Reiniciá opencode.**
+
+Después, taggeá con `link` cualquier chat de tu IA local que quieras
+compartir con opencode. Detalles y solución de problemas:
+[`plugin/README.md`](plugin/README.md).
 
 ---
 
