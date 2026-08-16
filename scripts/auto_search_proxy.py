@@ -18,12 +18,23 @@ OWU_URL = "http://localhost:8080"
 OWU_KEY = "sk-ef93fe1aa5544b47bdf8f614ec4d85aa"
 PORT = 9099
 
-TRIGGERS = re.compile(
-    r"nuev[oa]s?|reciente|actual|últim[oa]s?|hoy|2026|2025|"
-    r"fc\s?\d+|juego|videojuego|producto|versión|precio|precios|ranking|"
-    r"wonderkid|promesa|mejor|top\s?\d|lanzamiento|estreno",
+# Estrategia GENERAL: buscar SIEMPRE excepto saludos/corto/mates (blacklist, no whitelist)
+NO_SEARCH = re.compile(
+    r"^(hola|buenos días|buenas|buen día|gracias|ok|okey|dale|listo|sí|si|no|jaja|xd|perfecto|genial|excelente|entendido)[\s!.,]*$",
     re.IGNORECASE,
 )
+MATH_ONLY = re.compile(r"^[\d\s+\-*/×÷^().,]+$")
+
+
+def needs_search(text: str) -> bool:
+    t = text.strip()
+    if len(t) < 8:                      # muy corto (saludos cortos, ok, si)
+        return False
+    if NO_SEARCH.match(t):              # frases sociales exactas
+        return False
+    if MATH_ONLY.match(t):              # mates puras (17*23)
+        return False
+    return True                         # TODO lo demas -> buscar siempre
 
 RAG_TEMPLATE = """### Tarea:
 Respondé a la consulta del usuario usando SOLO el contexto provisto.
@@ -104,10 +115,16 @@ async def chat_completions(request: Request):
     last_user = next((m for m in reversed(messages) if m.get("role") == "user"), None)
     injected = False
     if last_user and needs_search(last_user.get("content", "")):
+        # Query: el mensaje; si es corto/ambiguo (follow-up), agrega el mensaje anterior
+        query = last_user["content"]
+        if len(query) < 24:
+            prev_user = next((m["content"] for m in reversed(messages[:-1]) if m.get("role") == "user"), "")
+            if prev_user:
+                query = f"{prev_user} {query}"
         # 2) Buscar SOLO (server-side) — 2 queries: espanol + ingles
-        results = await web_search(last_user["content"])
-        if not results and re.search(r"[a-zA-Z]", last_user["content"]):
-            results = await web_search(f"{last_user['content']} 2026 latest")
+        results = await web_search(query)
+        if not results and re.search(r"[a-zA-Z]", query):
+            results = await web_search(f"{query} 2026 latest")
         if results:
             # 3) Inyectar contexto con el template anti-fallback
             messages.append({"role": "system", "content": build_context(results)})
