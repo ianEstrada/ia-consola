@@ -131,21 +131,32 @@ async def chat_completions(request: Request):
     forward["model"] = model
     forward["messages"] = messages
 
-    async with httpx.AsyncClient(timeout=600) as client:
-        upstream = client.build_request(
-            "POST", f"{OWU_URL}/api/chat/completions",
-            headers={"Authorization": f"Bearer {OWU_KEY}", "Content-Type": "application/json"},
-            json=forward,
-        )
-        if body.get("stream"):
-            req = client.send(upstream, stream=True)
-            async def stream_gen():
-                async for line in req.aiter_lines():
-                    if line:
-                        yield line + "\n"
-            return StreamingResponse(stream_gen(), media_type="text/event-stream")
-        resp = await client.send(upstream)
-        return JSONResponse(status_code=resp.status_code, content=resp.json())
+    # Cliente SIN context manager: en streaming debe vivir hasta que el stream termine
+    client = httpx.AsyncClient(timeout=600)
+    upstream = client.build_request(
+        "POST", f"{OWU_URL}/api/chat/completions",
+        headers={"Authorization": f"Bearer {OWU_KEY}", "Content-Type": "application/json"},
+        json=forward,
+    )
+    if body.get("stream"):
+        req = await client.send(upstream, stream=True)
+        if req.status_code != 200:
+            body_bytes = await req.aread()
+            await client.aclose()
+            return JSONResponse(status_code=req.status_code, content=json.loads(body_bytes or b"{}"))
+
+        async def stream_gen():
+            try:
+                async for chunk in req.aiter_raw():
+                    yield chunk
+            finally:
+                await req.aclose()
+                await client.aclose()
+
+        return StreamingResponse(stream_gen(), media_type="text/event-stream")
+    resp = await client.send(upstream)
+    await client.aclose()
+    return JSONResponse(status_code=resp.status_code, content=resp.json())
 
 
 if __name__ == "__main__":
