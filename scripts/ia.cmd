@@ -1,6 +1,7 @@
 @echo off
 rem ia.cmd — start/stop/status de tu IA local (Tailscale + Ollama + Open WebUI)
 rem Uso:  ia start | ia stop | ia status
+rem Todo se lanza en SEGUNDO PLANO (oculto) — cerrar terminales no afecta la IA.
 
 if /i "%1"=="start"   goto start
 if /i "%1"=="stop"    goto stop
@@ -14,11 +15,11 @@ echo [1/3] Tailscale...
 timeout /t 3 /nobreak >nul
 start "" "%ProgramFiles%\Tailscale\tailscale-ipn.exe"
 echo [2/3] Ollama (fondo)...
-netstat -ano | findstr ":11434" | findstr "LISTENING" >nul && echo   ya estaba ON || start "" /b "%LocalAppData%\Programs\Ollama\ollama.exe" serve
-echo [3/3] Open WebUI...
-netstat -ano | findstr ":8080" | findstr "LISTENING" >nul && echo   ya estaba ON || start "Open WebUI" open-webui serve
+netstat -ano | findstr ":11434" | findstr "LISTENING" >nul && echo   ya estaba ON || powershell -NoProfile -Command "Start-Process -FilePath '%LocalAppData%\Programs\Ollama\ollama.exe' -ArgumentList 'serve' -WindowStyle Hidden"
+echo [3/3] Open WebUI (fondo oculto)...
+netstat -ano | findstr ":8080" | findstr "LISTENING" >nul && echo   ya estaba ON || powershell -NoProfile -Command "Start-Process -FilePath 'open-webui' -ArgumentList 'serve' -WindowStyle Hidden -RedirectStandardOutput '%USERPROFILE%\Documents\IA-Personal\owu.log' -RedirectStandardError '%USERPROFILE%\Documents\IA-Personal\owu.log.err'"
 echo.
-echo Lista: http://localhost:8080
+echo Lista: http://localhost:8080  —  todo corriendo en segundo plano
 exit /b
 
 :stop
